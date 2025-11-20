@@ -135,6 +135,49 @@ class FeatureExtractor:
             features['author_count'] = df['authors'].apply(
                 lambda x: len(x) if isinstance(x, list) else 0
             )
+
+            # Extract author h-index statistics (if available)
+            def get_author_h_indices(authors):
+                """Extract h-indices from author list."""
+                if not isinstance(authors, list):
+                    return []
+                h_indices = []
+                for author in authors:
+                    if isinstance(author, dict) and 'hIndex' in author:
+                        h_indices.append(author['hIndex'])
+                return h_indices
+
+            # Max, mean, and sum of author h-indices
+            h_index_lists = df['authors'].apply(get_author_h_indices)
+            features['max_author_hindex'] = h_index_lists.apply(
+                lambda x: max(x) if len(x) > 0 else 0
+            )
+            features['mean_author_hindex'] = h_index_lists.apply(
+                lambda x: np.mean(x) if len(x) > 0 else 0
+            )
+            features['sum_author_hindex'] = h_index_lists.apply(
+                lambda x: sum(x) if len(x) > 0 else 0
+            )
+
+            # Extract author citation counts (if available)
+            def get_author_citations(authors):
+                """Extract citation counts from author list."""
+                if not isinstance(authors, list):
+                    return []
+                citations = []
+                for author in authors:
+                    if isinstance(author, dict) and 'citationCount' in author:
+                        citations.append(author['citationCount'])
+                return citations
+
+            citation_lists = df['authors'].apply(get_author_citations)
+            features['max_author_citations'] = citation_lists.apply(
+                lambda x: max(x) if len(x) > 0 else 0
+            )
+            features['mean_author_citations'] = citation_lists.apply(
+                lambda x: np.mean(x) if len(x) > 0 else 0
+            )
+
         elif 'author_count' in df.columns:
             features['author_count'] = df['author_count'].fillna(0)
 
