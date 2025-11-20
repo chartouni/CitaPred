@@ -1,0 +1,88 @@
+# CitaPred Configuration File
+
+# Data settings
+data:
+  # Data sources
+  sources:
+    - semantic_scholar
+    - arxiv
+
+  # Train/val/test split by year
+  train_end_year: 2018
+  val_end_year: 2019
+  # Test data will be papers after val_end_year
+
+  # Data paths
+  raw_data_path: "data/raw"
+  processed_data_path: "data/processed"
+
+# Feature extraction settings
+features:
+  max_features: 1000
+  use_text_features: false  # Set to true to use TF-IDF features (memory intensive)
+  use_title: true
+  use_abstract: true
+  use_author_features: true
+  use_venue_features: true
+
+# Model settings
+model:
+  type: "random_forest"  # Options: linear, random_forest, xgboost, neural_network
+
+  # Random Forest parameters
+  random_forest:
+    n_estimators: 100
+    max_depth: null
+    min_samples_split: 2
+    random_state: 42
+
+  # XGBoost parameters
+  xgboost:
+    n_estimators: 100
+    learning_rate: 0.1
+    max_depth: 6
+    random_state: 42
+
+  # Neural Network parameters
+  neural_network:
+    hidden_layers: [128, 64, 32]
+    activation: "relu"
+    dropout: 0.2
+    epochs: 50
+    batch_size: 32
+
+# Training settings
+training:
+  target_column: "citationCount"
+  validation_split: 0.2
+  random_seed: 42
+
+# Evaluation settings
+evaluation:
+  metrics:
+    - mae
+    - rmse
+    - r2
+    - pearson_r
+    - spearman_r
+
+  # Citation count bins for stratified evaluation
+  stratification_bins: [0, 10, 50, 100, 500, 1000]
+
+# Logging settings
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  log_file: "logs/citapred.log"
+  use_wandb: false  # Set to true to use Weights & Biases for experiment tracking
+  wandb_project: "citapred"
+
+# API settings (for serving predictions)
+api:
+  host: "0.0.0.0"
+  port: 8000
+  debug: false
+
+# Paths
+paths:
+  model_save_path: "models/citation_predictor.pkl"
+  results_path: "results"
