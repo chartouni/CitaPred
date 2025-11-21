@@ -48,6 +48,25 @@ pip install -r requirements.txt
 
 ## Quick Start
 
+### Option 1: Streamlit Web UI (Recommended)
+
+Launch the interactive web application:
+
+```bash
+streamlit run app.py
+```
+
+The app will open in your browser at `http://localhost:8501`
+
+Features:
+- Load and explore datasets
+- Train models interactively
+- Make predictions on new papers
+- Visualize citation patterns
+- Export predictions
+
+### Option 2: Python API
+
 ```python
 from citapred.models import CitationPredictor
 
@@ -139,12 +158,23 @@ If you use this project in your research, please cite:
 }
 ```
 
+## Collecting Data
+
+Run the data collection script to gather papers from Semantic Scholar:
+
+```bash
+python scripts/collect_large_dataset.py
+```
+
+Note: The Semantic Scholar API has rate limits. Add delays between requests if you encounter 429 errors.
+
 ## Roadmap
 
-- [ ] Implement data collection pipelines
-- [ ] Build feature extraction modules
-- [ ] Train baseline models
+- [x] Implement data collection pipelines
+- [x] Build feature extraction modules
+- [x] Train baseline models
+- [x] Create Streamlit web UI
 - [ ] Implement deep learning models
 - [ ] Add citation network features
-- [ ] Create web API
+- [ ] Create REST API
 - [ ] Deploy as web service
