@@ -48,6 +48,32 @@ pip install -r requirements.txt
 
 ## Quick Start
 
+### Web Interface (Recommended for beginners)
+
+Launch the interactive web interface:
+
+```bash
+# Option 1: Streamlit (Full-featured)
+streamlit run app.py
+
+# Option 2: Gradio (Simple demo)
+python app_gradio.py
+
+# Option 3: REST API
+python api.py
+```
+
+Or use the launcher script:
+```bash
+# Linux/Mac
+./run_ui.sh
+
+# Windows
+run_ui.bat
+```
+
+### Python API
+
 ```python
 from citapred.models import CitationPredictor
 
@@ -59,6 +85,15 @@ predictor.train(training_data)
 
 # Make predictions
 predictions = predictor.predict(paper_metadata)
+```
+
+### REST API
+
+```bash
+# Make a prediction via HTTP
+curl -X POST "http://localhost:8000/predict" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "My Paper", "abstract": "...", "year": 2024}'
 ```
 
 ## Data Sources
@@ -111,6 +146,52 @@ The system uses:
 - **Validation**: K-fold cross-validation, temporal validation
 - **Benchmarks**: Comparison against baseline models
 
+## Web Interfaces
+
+CitaPred provides three different web interfaces:
+
+### 1. Streamlit Web App (`app.py`)
+Full-featured web application with:
+- 🔮 Single paper prediction with detailed analysis
+- 📊 Model performance dashboard
+- 🔍 Paper search from Semantic Scholar
+- 📈 Interactive model training
+- 📄 Batch predictions via CSV upload
+- 📉 Interactive visualizations
+
+**Launch:** `streamlit run app.py`
+**URL:** http://localhost:8501
+
+### 2. Gradio Interface (`app_gradio.py`)
+Simple, clean interface for quick demos:
+- 🎯 Quick predictions
+- 🔍 Paper search
+- 📈 Model training
+- 📱 Mobile-friendly
+
+**Launch:** `python app_gradio.py`
+**URL:** http://localhost:7860
+
+### 3. FastAPI REST API (`api.py`)
+RESTful API for programmatic access:
+- 🔌 RESTful endpoints
+- 📚 Auto-generated documentation
+- 🚀 High performance
+- 🔐 CORS enabled
+
+**Launch:** `python api.py`
+**API:** http://localhost:8000
+**Docs:** http://localhost:8000/docs
+
+### Detailed UI Documentation
+
+See [UI_README.md](UI_README.md) for comprehensive documentation including:
+- Installation and setup
+- Interface features and usage
+- API endpoints and examples
+- Troubleshooting guide
+- Deployment instructions
+
 ## Usage Examples
 
 See the `notebooks/` directory for detailed examples:
@@ -141,10 +222,14 @@ If you use this project in your research, please cite:
 
 ## Roadmap
 
-- [ ] Implement data collection pipelines
-- [ ] Build feature extraction modules
-- [ ] Train baseline models
+- [x] Implement data collection pipelines
+- [x] Build feature extraction modules
+- [x] Train baseline models
+- [x] Create web UI (Streamlit)
+- [x] Create demo interface (Gradio)
+- [x] Create web API (FastAPI)
 - [ ] Implement deep learning models
 - [ ] Add citation network features
-- [ ] Create web API
 - [ ] Deploy as web service
+- [ ] Add user authentication
+- [ ] Add citation trend analysis
