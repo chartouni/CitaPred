@@ -9,18 +9,27 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Import neural network (optional - only if PyTorch is available)
+try:
+    from citapred.models.neural import NeuralNetworkModel
+    NEURAL_NET_AVAILABLE = True
+except ImportError:
+    NEURAL_NET_AVAILABLE = False
+    logger.warning("PyTorch not available. Neural network models will be disabled.")
+
 
 class BaselineModel:
     """
     Simple baseline models for citation prediction.
     """
 
-    def __init__(self, model_type: str = "linear"):
+    def __init__(self, model_type: str = "linear", **kwargs):
         """
         Initialize the baseline model.
 
         Args:
-            model_type: Type of model ('linear', 'random_forest', 'mean')
+            model_type: Type of model ('linear', 'random_forest', 'neural_net', 'mean')
+            **kwargs: Additional arguments passed to the model
         """
         self.model_type = model_type
         self.model = None
@@ -30,6 +39,13 @@ class BaselineModel:
             self.model = LinearRegression()
         elif model_type == "random_forest":
             self.model = RandomForestRegressor(n_estimators=100, random_state=42)
+        elif model_type == "neural_net":
+            if not NEURAL_NET_AVAILABLE:
+                raise ImportError(
+                    "PyTorch is required for neural network models. "
+                    "Install it with: pip install torch"
+                )
+            self.model = NeuralNetworkModel(**kwargs)
         elif model_type == "mean":
             # Simple mean predictor
             pass

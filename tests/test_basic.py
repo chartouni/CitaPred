@@ -9,6 +9,13 @@ from citapred.data.preprocessor import DataPreprocessor
 from citapred.features.extractor import FeatureExtractor
 from citapred.models.baseline import BaselineModel
 
+# Check if PyTorch is available for neural network tests
+try:
+    from citapred.models.neural import NeuralNetworkModel
+    TORCH_AVAILABLE = True
+except ImportError:
+    TORCH_AVAILABLE = False
+
 
 class TestDataPreprocessor:
     """Tests for DataPreprocessor class."""
@@ -92,6 +99,77 @@ class TestBaselineModel:
 
         assert len(predictions) == 100
         assert np.allclose(predictions, 15.0)  # Mean of 10 and 20
+
+
+@pytest.mark.skipif(not TORCH_AVAILABLE, reason="PyTorch not installed")
+class TestNeuralNetworkModel:
+    """Tests for NeuralNetworkModel class."""
+
+    def test_neural_net_initialization(self):
+        """Test neural network initialization."""
+        model = NeuralNetworkModel(
+            hidden_sizes=[32, 16],
+            epochs=5,
+            batch_size=16
+        )
+        assert model.hidden_sizes == [32, 16]
+        assert model.epochs == 5
+        assert model.batch_size == 16
+
+    def test_neural_net_training(self):
+        """Test neural network training and prediction."""
+        np.random.seed(42)
+        X = np.random.rand(100, 10)
+        y = np.random.rand(100) * 100
+
+        model = NeuralNetworkModel(
+            hidden_sizes=[32, 16],
+            epochs=10,
+            batch_size=16,
+            early_stopping_patience=5
+        )
+        model.fit(X, y)
+        predictions = model.predict(X)
+
+        assert len(predictions) == 100
+        assert predictions.shape == (100,)
+        assert not np.isnan(predictions).any()
+
+    def test_neural_net_score(self):
+        """Test neural network R² score calculation."""
+        np.random.seed(42)
+        X = np.random.rand(50, 8)
+        y = np.random.rand(50) * 50
+
+        model = NeuralNetworkModel(
+            hidden_sizes=[16, 8],
+            epochs=10,
+            batch_size=8
+        )
+        model.fit(X, y)
+        score = model.score(X, y)
+
+        # Score should be a valid number
+        assert isinstance(score, (float, np.float32, np.float64))
+        assert not np.isnan(score)
+
+    def test_neural_net_via_baseline(self):
+        """Test neural network through BaselineModel interface."""
+        np.random.seed(42)
+        X = np.random.rand(80, 6)
+        y = np.random.rand(80) * 100
+
+        model = BaselineModel(
+            model_type='neural_net',
+            hidden_sizes=[24, 12],
+            epochs=10,
+            batch_size=16
+        )
+        model.fit(X, y)
+        predictions = model.predict(X)
+
+        assert len(predictions) == 80
+        assert not np.isnan(predictions).any()
 
 
 if __name__ == "__main__":
