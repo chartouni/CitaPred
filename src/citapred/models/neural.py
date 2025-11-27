@@ -150,11 +150,17 @@ class NeuralNetworkModel:
         Train the neural network.
 
         Args:
-            X: Training feature matrix
-            y: Training target values
+            X: Training feature matrix (numpy array or pandas DataFrame)
+            y: Training target values (numpy array or pandas Series)
             validation_split: Fraction of data to use for validation
         """
         logger.info(f"Training neural network with {len(X)} samples")
+
+        # Convert to numpy arrays if needed (handles DataFrame/Series)
+        if hasattr(X, 'values'):
+            X = X.values
+        if hasattr(y, 'values'):
+            y = y.values
 
         # Store input size and initialize model
         self.input_size = X.shape[1]
@@ -250,13 +256,17 @@ class NeuralNetworkModel:
         Make predictions.
 
         Args:
-            X: Feature matrix
+            X: Feature matrix (numpy array or pandas DataFrame)
 
         Returns:
             Predicted citation counts
         """
         if self.model is None:
             raise ValueError("Model must be trained before making predictions")
+
+        # Convert to numpy array if needed (handles DataFrame)
+        if hasattr(X, 'values'):
+            X = X.values
 
         self.model.eval()
         with torch.no_grad():
@@ -269,12 +279,16 @@ class NeuralNetworkModel:
         Calculate R² score.
 
         Args:
-            X: Feature matrix
-            y: True citation counts
+            X: Feature matrix (numpy array or pandas DataFrame)
+            y: True citation counts (numpy array or pandas Series)
 
         Returns:
             R² score
         """
+        # Convert to numpy array if needed (handles Series)
+        if hasattr(y, 'values'):
+            y = y.values
+
         predictions = self.predict(X)
         ss_res = np.sum((y - predictions) ** 2)
         ss_tot = np.sum((y - np.mean(y)) ** 2)
