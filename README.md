@@ -98,10 +98,11 @@ The system extracts and engineers features in several categories:
 ## Models
 
 Supported model architectures:
-- **Linear Regression** (baseline) - Simple linear model
-- **Random Forest** - Ensemble tree-based model
+- **Linear Regression** (baseline) - Simple linear model ✅
+- **Random Forest** - Ensemble tree-based model ✅
+- **XGBoost** - Gradient boosting optimized for speed and performance ✅ **IMPLEMENTED**
+- **LightGBM** - Fast gradient boosting framework ✅ **IMPLEMENTED**
 - **Neural Networks** - Feedforward neural network with PyTorch ✅ **IMPLEMENTED**
-- Gradient Boosting (XGBoost, LightGBM) - *Coming soon*
 - Graph Neural Networks (for citation network modeling) - *Coming soon*
 
 ## Evaluation
@@ -134,6 +135,40 @@ predictions = predictor.predict(test_data)
 ```
 
 **Note:** Neural networks require PyTorch: `pip install torch`
+
+### Gradient Boosting Examples
+
+```python
+from citapred.models import CitationPredictor
+
+# XGBoost configuration
+xgb_config = {
+    'n_estimators': 200,
+    'learning_rate': 0.1,
+    'max_depth': 6
+}
+
+# Train XGBoost predictor
+predictor = CitationPredictor(model_type="xgboost", config=xgb_config)
+predictor.train(training_data)
+predictions = predictor.predict(test_data)
+
+# LightGBM configuration
+lgb_config = {
+    'n_estimators': 200,
+    'learning_rate': 0.1,
+    'num_leaves': 31
+}
+
+# Train LightGBM predictor
+predictor = CitationPredictor(model_type="lightgbm", config=lgb_config)
+predictor.train(training_data)
+predictions = predictor.predict(test_data)
+```
+
+**Note:**
+- XGBoost: `pip install xgboost`
+- LightGBM: `pip install lightgbm`
 
 ### Additional Examples
 
