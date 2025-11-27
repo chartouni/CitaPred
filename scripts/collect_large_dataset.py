@@ -57,8 +57,8 @@ def collect_papers_by_query(
         logger.info(f"Progress: {len(all_papers)}/{target_count} papers collected")
 
         try:
-            # Fetch batch
-            papers = collector.search_papers(query=query, limit=batch_size)
+            # Fetch batch with offset for pagination
+            papers = collector.search_papers(query=query, limit=batch_size, offset=offset)
 
             if not papers:
                 logger.warning("No more papers found")
@@ -77,7 +77,7 @@ def collect_papers_by_query(
                     if paper.get('citationCount') is not None:
                         filtered_papers.append(paper)
 
-            logger.info(f"Found {len(filtered_papers)} valid papers in this batch")
+            logger.info(f"Found {len(filtered_papers)} valid papers in this batch (offset: {offset})")
             all_papers.extend(filtered_papers)
 
             # Rate limiting
