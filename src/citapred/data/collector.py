@@ -55,8 +55,13 @@ class DataCollector:
             "fields": "title,abstract,authors,venue,year,citationCount,referenceCount,influentialCitationCount"
         }
 
+        # Add API key to headers if available
+        headers = {}
+        if self.api_key:
+            headers["x-api-key"] = self.api_key
+
         try:
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, headers=headers)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
@@ -98,8 +103,13 @@ class DataCollector:
             "fields": "title,abstract,authors,venue,year,citationCount,referenceCount"
         }
 
+        # Add API key to headers if available
+        headers = {}
+        if self.api_key:
+            headers["x-api-key"] = self.api_key
+
         try:
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, headers=headers)
             response.raise_for_status()
             data = response.json()
             return data.get("data", [])

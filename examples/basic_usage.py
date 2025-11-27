@@ -31,7 +31,10 @@ def main():
 
     # Step 1: Collect data
     logger.info("Step 1: Collecting sample data from Semantic Scholar")
-    collector = DataCollector()
+    # Initialize collector with API key (optional but recommended)
+    # You can set your API key here or use environment variable
+    api_key = "0G8y90GfQIaYaqoxFYPFH5kQFkH75un23fvs0hIx"
+    collector = DataCollector(api_key=api_key)
 
     # Search for machine learning papers
     papers = collector.search_papers(query="machine learning", limit=100)
