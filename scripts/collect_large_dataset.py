@@ -27,7 +27,8 @@ def collect_papers_by_query(
     min_year: int = 2015,
     max_year: int = 2020,
     batch_size: int = 100,
-    delay: float = 1.0
+    delay: float = 1.0,
+    api_key: str = None
 ) -> List[Dict]:
     """
     Collect papers matching a query with rate limiting.
@@ -39,11 +40,12 @@ def collect_papers_by_query(
         max_year: Maximum publication year (to ensure citation history)
         batch_size: Papers per API request
         delay: Delay between requests (seconds)
+        api_key: Semantic Scholar API key
 
     Returns:
         List of paper dictionaries
     """
-    collector = DataCollector()
+    collector = DataCollector(api_key=api_key)
     all_papers = []
 
     logger.info(f"Collecting papers for query: '{query}'")
@@ -154,6 +156,8 @@ def main():
     logger.info("=== CitaPred Data Collection Script ===")
 
     # Configuration
+    API_KEY = "0G8y90GfQIaYaqoxFYPFH5kQFkH75un23fvs0hIx"  # Semantic Scholar API key
+
     QUERIES = [
         "machine learning",
         "deep learning",
@@ -164,6 +168,7 @@ def main():
     PAPERS_PER_QUERY = 500  # Total target: 2000 papers
     MIN_YEAR = 2015
     MAX_YEAR = 2020  # Papers up to 2020, so they have 3+ years of citations
+    DELAY = 1.5  # 1.5 seconds between requests to be safe with rate limit
 
     all_papers = []
 
@@ -178,7 +183,8 @@ def main():
             target_count=PAPERS_PER_QUERY,
             min_year=MIN_YEAR,
             max_year=MAX_YEAR,
-            delay=1.0
+            delay=DELAY,
+            api_key=API_KEY
         )
 
         all_papers.extend(papers)

@@ -175,8 +175,8 @@ def main():
     df = df[df['citationCount'].notna()].copy()
     logger.info(f"Papers with valid citations: {len(df)}")
 
-    if len(df) < 100:
-        logger.error("Not enough papers for training. Collect more data first.")
+    if len(df) < 50:
+        logger.error("Not enough papers for training. Need at least 50 papers with citations.")
         return
 
     # Show citation distribution
