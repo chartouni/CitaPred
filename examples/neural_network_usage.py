@@ -33,8 +33,8 @@ def main():
     api_key = "0G8y90GfQIaYaqoxFYPFH5kQFkH75un23fvs0hIx"
     collector = DataCollector(api_key=api_key)
 
-    # Search for machine learning papers
-    papers = collector.search_papers(query="deep learning", limit=200)
+    # Search for machine learning papers (limit=100 for API stability)
+    papers = collector.search_papers(query="deep learning", limit=100)
     logger.info(f"Collected {len(papers)} papers")
 
     if len(papers) == 0:
@@ -51,7 +51,7 @@ def main():
     df = df[df['citationCount'].notna() & (df['citationCount'] > 0)]
     logger.info(f"Papers with citations: {len(df)}")
 
-    if len(df) < 50:
+    if len(df) < 30:
         logger.error("Not enough papers with citation data for training")
         return
 
