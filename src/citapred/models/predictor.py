@@ -24,8 +24,8 @@ class CitationPredictor:
         Initialize the citation predictor.
 
         Args:
-            model_type: Type of model to use
-            config: Configuration dictionary
+            model_type: Type of model to use ('linear', 'random_forest', 'neural_net', 'mean')
+            config: Configuration dictionary with model-specific parameters
         """
         self.model_type = model_type
         self.config = config or {}
@@ -34,7 +34,10 @@ class CitationPredictor:
         self.feature_extractor = FeatureExtractor(
             max_features=self.config.get('max_features', 1000)
         )
-        self.model = BaselineModel(model_type=model_type)
+
+        # Extract model-specific kwargs from config
+        model_kwargs = {k: v for k, v in self.config.items() if k != 'max_features'}
+        self.model = BaselineModel(model_type=model_type, **model_kwargs)
 
         self.is_trained = False
 

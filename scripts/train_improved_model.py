@@ -97,6 +97,38 @@ def train_model(X_train, y_train, model_type='random_forest'):
             random_state=42,
             n_jobs=-1
         )
+    elif model_type == 'xgboost':
+        try:
+            import xgboost as xgb
+            model = xgb.XGBRegressor(
+                n_estimators=200,
+                learning_rate=0.1,
+                max_depth=6,
+                min_child_weight=1,
+                subsample=0.8,
+                colsample_bytree=0.8,
+                random_state=42,
+                verbosity=0
+            )
+        except ImportError:
+            logger.error("XGBoost not installed. Install with: pip install xgboost")
+            return None
+    elif model_type == 'lightgbm':
+        try:
+            import lightgbm as lgb
+            model = lgb.LGBMRegressor(
+                n_estimators=200,
+                learning_rate=0.1,
+                num_leaves=31,
+                min_child_samples=20,
+                subsample=0.8,
+                colsample_bytree=0.8,
+                random_state=42,
+                verbosity=-1
+            )
+        except ImportError:
+            logger.error("LightGBM not installed. Install with: pip install lightgbm")
+            return None
     else:
         raise ValueError(f"Unknown model type: {model_type}")
 
@@ -175,8 +207,8 @@ def main():
     df = df[df['citationCount'].notna()].copy()
     logger.info(f"Papers with valid citations: {len(df)}")
 
-    if len(df) < 100:
-        logger.error("Not enough papers for training. Collect more data first.")
+    if len(df) < 50:
+        logger.error("Not enough papers for training. Need at least 50 papers with citations.")
         return
 
     # Show citation distribution
@@ -220,7 +252,7 @@ def main():
     logger.info(f"Log-transformed range: [{y_train_log.min():.2f}, {y_train_log.max():.2f}]")
 
     # Train models and compare
-    models_to_try = ['linear', 'random_forest']
+    models_to_try = ['linear', 'random_forest', 'xgboost', 'lightgbm']
     results = {}
 
     for model_type in models_to_try:
@@ -229,6 +261,12 @@ def main():
         logger.info(f"{'='*60}")
 
         model = train_model(X_train, y_train_log, model_type=model_type)
+
+        # Skip if model failed to load (e.g., library not installed)
+        if model is None:
+            logger.warning(f"Skipping {model_type} - library not available")
+            continue
+
         metrics, predictions = evaluate_model(
             model, X_test, y_test_log, y_test_original,
             split_name=f'Test ({model_type})'
@@ -261,15 +299,15 @@ def main():
     best_model_type = comparison_df['R²'].idxmax()
     logger.info(f"\nBest model: {best_model_type} (R² = {comparison_df.loc[best_model_type, 'R²']:.4f})")
 
-    # Feature importance (for Random Forest)
-    if best_model_type == 'random_forest':
+    # Feature importance (for tree-based models)
+    if best_model_type in ['random_forest', 'xgboost', 'lightgbm']:
         model = results[best_model_type]['model']
         feature_importance = pd.DataFrame({
             'feature': X_train.columns,
             'importance': model.feature_importances_
         }).sort_values('importance', ascending=False)
 
-        logger.info("\nTop 10 Most Important Features:")
+        logger.info(f"\nTop 10 Most Important Features ({best_model_type}):")
         logger.info("\n" + str(feature_importance.head(10)))
 
     logger.info("\n=== Training Complete! ===")

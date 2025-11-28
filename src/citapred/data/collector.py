@@ -55,38 +55,45 @@ class DataCollector:
             "fields": "title,abstract,authors,venue,year,citationCount,referenceCount,influentialCitationCount"
         }
 
+        # Add API key to headers if available
+        headers = {}
+        if self.api_key:
+            headers["x-api-key"] = self.api_key
+
         try:
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, headers=headers)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
             logger.error(f"Error fetching paper {paper_id}: {e}")
             return None
 
-    def search_papers(self, query: str, limit: int = 100, source: str = "semantic_scholar") -> List[Dict]:
+    def search_papers(self, query: str, limit: int = 100, offset: int = 0, source: str = "semantic_scholar") -> List[Dict]:
         """
         Search for papers by query.
 
         Args:
             query: Search query string
-            limit: Maximum number of results
+            limit: Maximum number of results per request
+            offset: Starting position for pagination
             source: The data source
 
         Returns:
             List of paper metadata dictionaries
         """
         if source == "semantic_scholar":
-            return self._search_semantic_scholar(query, limit)
+            return self._search_semantic_scholar(query, limit, offset)
         else:
             raise ValueError(f"Unsupported source: {source}")
 
-    def _search_semantic_scholar(self, query: str, limit: int) -> List[Dict]:
+    def _search_semantic_scholar(self, query: str, limit: int, offset: int = 0) -> List[Dict]:
         """
         Search papers on Semantic Scholar.
 
         Args:
             query: Search query
-            limit: Maximum results
+            limit: Maximum results per request
+            offset: Starting position for pagination
 
         Returns:
             List of papers
@@ -95,11 +102,17 @@ class DataCollector:
         params = {
             "query": query,
             "limit": limit,
+            "offset": offset,
             "fields": "title,abstract,authors,venue,year,citationCount,referenceCount"
         }
 
+        # Add API key to headers if available
+        headers = {}
+        if self.api_key:
+            headers["x-api-key"] = self.api_key
+
         try:
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, headers=headers)
             response.raise_for_status()
             data = response.json()
             return data.get("data", [])

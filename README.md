@@ -98,11 +98,12 @@ The system extracts and engineers features in several categories:
 ## Models
 
 Supported model architectures:
-- Linear Regression (baseline)
-- Random Forest
-- Gradient Boosting (XGBoost, LightGBM)
-- Neural Networks
-- Graph Neural Networks (for citation network modeling)
+- **Linear Regression** (baseline) - Simple linear model ✅
+- **Random Forest** - Ensemble tree-based model ✅
+- **XGBoost** - Gradient boosting optimized for speed and performance ✅ **IMPLEMENTED**
+- **LightGBM** - Fast gradient boosting framework ✅ **IMPLEMENTED**
+- **Neural Networks** - Feedforward neural network with PyTorch ✅ **IMPLEMENTED**
+- Graph Neural Networks (for citation network modeling) - *Coming soon*
 
 ## Evaluation
 
@@ -112,6 +113,68 @@ The system uses:
 - **Benchmarks**: Comparison against baseline models
 
 ## Usage Examples
+
+### Neural Network Example
+
+```python
+from citapred.models import CitationPredictor
+
+# Configure neural network
+config = {
+    'hidden_sizes': [128, 64, 32],
+    'dropout_rate': 0.3,
+    'learning_rate': 0.001,
+    'epochs': 50,
+    'batch_size': 16
+}
+
+# Train neural network predictor
+predictor = CitationPredictor(model_type="neural_net", config=config)
+predictor.train(training_data)
+predictions = predictor.predict(test_data)
+```
+
+**Note:** Neural networks require PyTorch: `pip install torch`
+
+### Gradient Boosting Examples
+
+```python
+from citapred.models import CitationPredictor
+
+# XGBoost configuration
+xgb_config = {
+    'n_estimators': 200,
+    'learning_rate': 0.1,
+    'max_depth': 6
+}
+
+# Train XGBoost predictor
+predictor = CitationPredictor(model_type="xgboost", config=xgb_config)
+predictor.train(training_data)
+predictions = predictor.predict(test_data)
+
+# LightGBM configuration
+lgb_config = {
+    'n_estimators': 200,
+    'learning_rate': 0.1,
+    'num_leaves': 31
+}
+
+# Train LightGBM predictor
+predictor = CitationPredictor(model_type="lightgbm", config=lgb_config)
+predictor.train(training_data)
+predictions = predictor.predict(test_data)
+```
+
+**Note:**
+- XGBoost: `pip install xgboost`
+- LightGBM: `pip install lightgbm`
+
+### Additional Examples
+
+See the `examples/` directory for complete examples:
+- `basic_usage.py`: Basic citation prediction pipeline
+- `neural_network_usage.py`: Neural network training and comparison
 
 See the `notebooks/` directory for detailed examples:
 - `01_data_exploration.ipynb`: Data analysis and visualization
