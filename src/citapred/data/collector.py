@@ -103,7 +103,7 @@ class DataCollector:
             "query": query,
             "limit": limit,
             "offset": offset,
-            "fields": "title,abstract,authors,venue,year,citationCount,referenceCount"
+            "fields": "title,abstract,authors.name,authors.hIndex,authors.citationCount,venue,year,citationCount,referenceCount"
         }
 
         # Add API key to headers if available
