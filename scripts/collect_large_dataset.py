@@ -165,7 +165,7 @@ def main():
         "computer vision",
     ]
 
-    PAPERS_PER_QUERY = 500  # Total target: 2000 papers
+    PAPERS_PER_QUERY = 2000  # Total target: ~7000+ unique papers after deduplication
     MIN_YEAR = 2015
     MAX_YEAR = 2020  # Papers up to 2020, so they have 3+ years of citations
     DELAY = 1.5  # 1.5 seconds between requests to be safe with rate limit
