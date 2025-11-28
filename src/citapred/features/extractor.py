@@ -16,14 +16,16 @@ class FeatureExtractor:
     Extracts features from research paper data for citation prediction.
     """
 
-    def __init__(self, max_features: int = 1000):
+    def __init__(self, max_features: int = 1000, use_tfidf: bool = False):
         """
         Initialize the feature extractor.
 
         Args:
             max_features: Maximum number of text features to extract
+            use_tfidf: Whether to extract TF-IDF features from titles/abstracts
         """
         self.max_features = max_features
+        self.use_tfidf = use_tfidf
         self.title_vectorizer = TfidfVectorizer(max_features=max_features, stop_words='english')
         self.abstract_vectorizer = TfidfVectorizer(max_features=max_features, stop_words='english')
         self.is_fitted = False
@@ -115,9 +117,9 @@ class FeatureExtractor:
         # Interaction features
         features = self._extract_interaction_features(df, features)
 
-        # Text features (optional - can be memory intensive)
-        # Uncomment if you want to use text features
-        # features = self._extract_text_features(df, features)
+        # Text features (TF-IDF) - controlled by use_tfidf flag
+        if self.use_tfidf:
+            features = self._extract_text_features(df, features)
 
         return features
 

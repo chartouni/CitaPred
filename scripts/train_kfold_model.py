@@ -103,7 +103,7 @@ def train_model(X_train, y_train, model_type='random_forest'):
     return model
 
 
-def kfold_cross_validate(df: pd.DataFrame, model_type: str, n_splits: int = 5):
+def kfold_cross_validate(df: pd.DataFrame, model_type: str, n_splits: int = 5, use_tfidf: bool = False):
     """
     Perform k-fold cross validation for a model.
 
@@ -111,6 +111,7 @@ def kfold_cross_validate(df: pd.DataFrame, model_type: str, n_splits: int = 5):
         df: Full dataset
         model_type: Type of model to train
         n_splits: Number of folds
+        use_tfidf: Whether to use TF-IDF text features
 
     Returns:
         Dictionary with averaged metrics and per-fold results
@@ -120,7 +121,7 @@ def kfold_cross_validate(df: pd.DataFrame, model_type: str, n_splits: int = 5):
     logger.info(f"{'='*60}")
 
     # Prepare feature extractor (fit on full dataset)
-    feature_extractor = FeatureExtractor(max_features=1000)
+    feature_extractor = FeatureExtractor(max_features=1000, use_tfidf=use_tfidf)
     X_full = feature_extractor.fit_transform(df)
     y_full_original = df['citationCount'].values
     y_full_log = apply_log_transform(y_full_original)
@@ -196,6 +197,12 @@ def main():
     # Configuration
     DATA_FILE = "data/raw/complete_dataset.json"
     N_FOLDS = 5
+    USE_TFIDF = True  # Set to False to disable TF-IDF text features (fallback mode)
+
+    if USE_TFIDF:
+        logger.info("TF-IDF text features: ENABLED")
+    else:
+        logger.info("TF-IDF text features: DISABLED (using only metadata features)")
 
     # Check if data file exists
     if not Path(DATA_FILE).exists():
@@ -239,7 +246,7 @@ def main():
     results = {}
 
     for model_type in models_to_try:
-        result = kfold_cross_validate(df, model_type, n_splits=N_FOLDS)
+        result = kfold_cross_validate(df, model_type, n_splits=N_FOLDS, use_tfidf=USE_TFIDF)
 
         if result is None:
             logger.warning(f"Skipping {model_type} - library not available")
@@ -276,7 +283,7 @@ def main():
     logger.info(f"Training Final {best_model_type.upper()} Model on Full Dataset")
     logger.info(f"{'='*60}")
 
-    feature_extractor = FeatureExtractor(max_features=1000)
+    feature_extractor = FeatureExtractor(max_features=1000, use_tfidf=USE_TFIDF)
     X_full = feature_extractor.fit_transform(df)
     y_full_original = df['citationCount'].values
     y_full_log = apply_log_transform(y_full_original)
