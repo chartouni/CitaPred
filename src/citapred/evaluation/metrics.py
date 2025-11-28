@@ -11,13 +11,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def calculate_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
+def calculate_metrics(y_true: np.ndarray, y_pred: np.ndarray, n_features: int = None) -> Dict[str, float]:
     """
     Calculate various evaluation metrics.
 
     Args:
         y_true: True citation counts
         y_pred: Predicted citation counts
+        n_features: Number of features used (optional, for adjusted R²)
 
     Returns:
         Dictionary with metric names and values
@@ -28,6 +29,14 @@ def calculate_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float
     metrics['mae'] = mean_absolute_error(y_true, y_pred)
     metrics['rmse'] = np.sqrt(mean_squared_error(y_true, y_pred))
     metrics['r2'] = r2_score(y_true, y_pred)
+
+    # Adjusted R² (penalizes adding features)
+    if n_features is not None and len(y_true) > n_features + 1:
+        n = len(y_true)
+        p = n_features
+        r2 = metrics['r2']
+        adjusted_r2 = 1 - ((1 - r2) * (n - 1) / (n - p - 1))
+        metrics['adjusted_r2'] = adjusted_r2
 
     # Correlation metrics
     if len(y_true) > 1:

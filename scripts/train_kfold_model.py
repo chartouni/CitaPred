@@ -153,8 +153,9 @@ def kfold_cross_validate(df: pd.DataFrame, model_type: str, n_splits: int = 5):
         y_pred = inverse_log_transform(y_pred_log)
         y_pred = np.maximum(y_pred, 0)  # Ensure non-negative
 
-        # Calculate metrics
-        metrics = calculate_metrics(y_val_original, y_pred)
+        # Calculate metrics (including adjusted R²)
+        n_features = X_val.shape[1]
+        metrics = calculate_metrics(y_val_original, y_pred, n_features=n_features)
         fold_metrics.append(metrics)
         fold_predictions.append({
             'true': y_val_original,
@@ -214,12 +215,29 @@ def main():
         return
 
     # Show citation distribution
-    logger.info("\nCitation Distribution:")
+    logger.info("\nCitation Distribution (Before Outlier Handling):")
     logger.info(f"  Mean: {df['citationCount'].mean():.2f}")
     logger.info(f"  Median: {df['citationCount'].median():.2f}")
     logger.info(f"  Std: {df['citationCount'].std():.2f}")
     logger.info(f"  Min: {df['citationCount'].min()}")
     logger.info(f"  Max: {df['citationCount'].max()}")
+
+    # Cap outliers at 99th percentile to improve model performance
+    citation_99th = df['citationCount'].quantile(0.99)
+    logger.info(f"\n99th percentile: {citation_99th:.2f}")
+    logger.info(f"Capping citation counts at 99th percentile to handle outliers...")
+
+    # Create capped version for training
+    df['citationCount'] = df['citationCount'].clip(upper=citation_99th)
+
+    logger.info("\nCitation Distribution (After Capping):")
+    logger.info(f"  Mean: {df['citationCount'].mean():.2f}")
+    logger.info(f"  Median: {df['citationCount'].median():.2f}")
+    logger.info(f"  Std: {df['citationCount'].std():.2f}")
+    logger.info(f"  Min: {df['citationCount'].min()}")
+    logger.info(f"  Max: {df['citationCount'].max()}")
+    logger.info(f"  Papers affected: {(df['citationCount'] == citation_99th).sum()}")
+
 
     # Train and evaluate models with k-fold CV
     models_to_try = ['linear', 'random_forest', 'xgboost', 'lightgbm']
