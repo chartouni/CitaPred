@@ -215,28 +215,23 @@ def main():
         return
 
     # Show citation distribution
-    logger.info("\nCitation Distribution (Before Outlier Handling):")
+    logger.info("\nCitation Distribution (Original Scale):")
     logger.info(f"  Mean: {df['citationCount'].mean():.2f}")
     logger.info(f"  Median: {df['citationCount'].median():.2f}")
     logger.info(f"  Std: {df['citationCount'].std():.2f}")
     logger.info(f"  Min: {df['citationCount'].min()}")
     logger.info(f"  Max: {df['citationCount'].max()}")
+    logger.info(f"  99th percentile: {df['citationCount'].quantile(0.99):.2f}")
 
-    # Cap outliers at 99th percentile to improve model performance
-    citation_99th = df['citationCount'].quantile(0.99)
-    logger.info(f"\n99th percentile: {citation_99th:.2f}")
-    logger.info(f"Capping citation counts at 99th percentile to handle outliers...")
-
-    # Create capped version for training
-    df['citationCount'] = df['citationCount'].clip(upper=citation_99th)
-
-    logger.info("\nCitation Distribution (After Capping):")
-    logger.info(f"  Mean: {df['citationCount'].mean():.2f}")
-    logger.info(f"  Median: {df['citationCount'].median():.2f}")
-    logger.info(f"  Std: {df['citationCount'].std():.2f}")
-    logger.info(f"  Min: {df['citationCount'].min()}")
-    logger.info(f"  Max: {df['citationCount'].max()}")
-    logger.info(f"  Papers affected: {(df['citationCount'] == citation_99th).sum()}")
+    # Show log-transformed distribution
+    log_citations = np.log(df['citationCount'] + 1)
+    logger.info("\nCitation Distribution (Log-Transformed):")
+    logger.info(f"  Mean: {log_citations.mean():.2f}")
+    logger.info(f"  Median: {log_citations.median():.2f}")
+    logger.info(f"  Std: {log_citations.std():.2f}")
+    logger.info(f"  Min: {log_citations.min():.2f}")
+    logger.info(f"  Max: {log_citations.max():.2f}")
+    logger.info("\nNote: Models will be trained on log-transformed citations to handle skewness")
 
 
     # Train and evaluate models with k-fold CV
