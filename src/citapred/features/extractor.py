@@ -209,18 +209,19 @@ class FeatureExtractor:
                         # Filter out None values
                         if h_idx is not None:
                             h_indices.append(h_idx)
-                return h_indices
+                # Extra safety: filter out any None values that might have slipped through
+                return [h for h in h_indices if h is not None]
 
             # Max, mean, and sum of author h-indices
             h_index_lists = df['authors'].apply(get_author_h_indices)
             features['max_author_hindex'] = h_index_lists.apply(
-                lambda x: max(x) if len(x) > 0 else 0
+                lambda x: max([v for v in x if v is not None]) if x and any(v is not None for v in x) else 0
             )
             features['mean_author_hindex'] = h_index_lists.apply(
-                lambda x: np.mean(x) if len(x) > 0 else 0
+                lambda x: np.mean([v for v in x if v is not None]) if x and any(v is not None for v in x) else 0
             )
             features['sum_author_hindex'] = h_index_lists.apply(
-                lambda x: sum(x) if len(x) > 0 else 0
+                lambda x: sum([v for v in x if v is not None]) if x and any(v is not None for v in x) else 0
             )
 
             # Extract author citation counts (if available)
@@ -235,14 +236,15 @@ class FeatureExtractor:
                         # Filter out None values
                         if cit_count is not None:
                             citations.append(cit_count)
-                return citations
+                # Extra safety: filter out any None values that might have slipped through
+                return [c for c in citations if c is not None]
 
             citation_lists = df['authors'].apply(get_author_citations)
             features['max_author_citations'] = citation_lists.apply(
-                lambda x: max(x) if len(x) > 0 else 0
+                lambda x: max([v for v in x if v is not None]) if x and any(v is not None for v in x) else 0
             )
             features['mean_author_citations'] = citation_lists.apply(
-                lambda x: np.mean(x) if len(x) > 0 else 0
+                lambda x: np.mean([v for v in x if v is not None]) if x and any(v is not None for v in x) else 0
             )
 
         elif 'author_count' in df.columns:
