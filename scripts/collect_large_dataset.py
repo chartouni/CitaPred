@@ -158,14 +158,24 @@ def main():
     # Configuration
     API_KEY = "0G8y90GfQIaYaqoxFYPFH5kQFkH75un23fvs0hIx"  # Semantic Scholar API key
 
+    # Semantic Scholar API has a 1000-offset limit, so we use many diverse queries
+    # Each query can return max ~800-1000 papers
     QUERIES = [
         "machine learning",
         "deep learning",
         "natural language processing",
         "computer vision",
+        "neural networks",
+        "reinforcement learning",
+        "artificial intelligence",
+        "data mining",
+        "information retrieval",
+        "speech recognition",
+        "image classification",
+        "object detection",
     ]
 
-    PAPERS_PER_QUERY = 2000  # Total target: ~7000+ unique papers after deduplication
+    PAPERS_PER_QUERY = 1000  # Max per query due to API offset limit
     MIN_YEAR = 2015
     MAX_YEAR = 2020  # Papers up to 2020, so they have 3+ years of citations
     DELAY = 1.5  # 1.5 seconds between requests to be safe with rate limit
