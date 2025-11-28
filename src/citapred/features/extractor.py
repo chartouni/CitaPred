@@ -36,10 +36,16 @@ class FeatureExtractor:
             'Nature': 10.0, 'Science': 10.0, 'Cell': 9.5,
             'Nature Medicine': 9.0, 'Nature Genetics': 9.0, 'Nature Biotechnology': 9.0,
 
-            # Top ML/AI conferences
-            'NeurIPS': 9.0, 'NIPS': 9.0, 'ICML': 9.0, 'ICLR': 8.5,
-            'CVPR': 8.5, 'ICCV': 8.5, 'ECCV': 8.0,
-            'ACL': 8.0, 'EMNLP': 7.5, 'NAACL': 7.0,
+            # Top ML/AI conferences (abbreviations and full names)
+            'NeurIPS': 9.0, 'NIPS': 9.0, 'Neural Information Processing Systems': 9.0,
+            'ICML': 9.0, 'International Conference on Machine Learning': 9.0,
+            'ICLR': 8.5, 'International Conference on Learning Representations': 8.5,
+            'CVPR': 8.5, 'Computer Vision and Pattern Recognition': 8.5,
+            'ICCV': 8.5, 'IEEE International Conference on Computer Vision': 8.5,
+            'ECCV': 8.0, 'European Conference on Computer Vision': 8.0,
+            'ACL': 8.0, 'Annual Meeting of the Association for Computational Linguistics': 8.0,
+            'EMNLP': 7.5, 'Conference on Empirical Methods in Natural Language Processing': 7.5,
+            'NAACL': 7.0, 'North American Chapter of the Association for Computational Linguistics': 7.0,
 
             # Top systems/theory conferences
             'OSDI': 8.5, 'SOSP': 8.5, 'SIGCOMM': 8.0, 'NSDI': 8.0,
@@ -55,6 +61,9 @@ class FeatureExtractor:
             # Popular journals
             'PLOS ONE': 5.0, 'Scientific Reports': 5.0,
             'IEEE Transactions': 6.5, 'ACM Transactions': 6.5,
+            'IEEE Access': 5.5,
+            'ACM Computing Surveys': 8.0,
+            'Journal of machine learning research': 8.5, 'JMLR': 8.5,
 
             # Medical
             'The Lancet': 9.5, 'NEJM': 10.0, 'JAMA': 9.0, 'BMJ': 8.0,
