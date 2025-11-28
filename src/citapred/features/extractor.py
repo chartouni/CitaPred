@@ -28,6 +28,42 @@ class FeatureExtractor:
         self.abstract_vectorizer = TfidfVectorizer(max_features=max_features, stop_words='english')
         self.is_fitted = False
 
+        # Venue prestige scores (based on typical citation impact)
+        self.venue_prestige = {
+            # Top tier - Nature, Science family
+            'Nature': 10.0, 'Science': 10.0, 'Cell': 9.5,
+            'Nature Medicine': 9.0, 'Nature Genetics': 9.0, 'Nature Biotechnology': 9.0,
+
+            # Top ML/AI conferences
+            'NeurIPS': 9.0, 'NIPS': 9.0, 'ICML': 9.0, 'ICLR': 8.5,
+            'CVPR': 8.5, 'ICCV': 8.5, 'ECCV': 8.0,
+            'ACL': 8.0, 'EMNLP': 7.5, 'NAACL': 7.0,
+
+            # Top systems/theory conferences
+            'OSDI': 8.5, 'SOSP': 8.5, 'SIGCOMM': 8.0, 'NSDI': 8.0,
+            'FOCS': 8.5, 'STOC': 8.5, 'SODA': 7.5,
+
+            # Top AI conferences
+            'AAAI': 7.5, 'IJCAI': 7.5, 'KDD': 8.0, 'WWW': 7.5,
+
+            # Good venues
+            'SIGIR': 7.0, 'CIKM': 6.5, 'WSDM': 6.5,
+            'ICRA': 7.0, 'IROS': 6.5, 'RSS': 7.5,
+
+            # Popular journals
+            'PLOS ONE': 5.0, 'Scientific Reports': 5.0,
+            'IEEE Transactions': 6.5, 'ACM Transactions': 6.5,
+
+            # Medical
+            'The Lancet': 9.5, 'NEJM': 10.0, 'JAMA': 9.0, 'BMJ': 8.0,
+
+            # Arxiv (preprints)
+            'arXiv': 4.0, 'bioRxiv': 4.0
+        }
+
+        # Compute venue statistics on fit
+        self.venue_citation_stats = {}
+
     def fit(self, df: pd.DataFrame):
         """
         Fit the feature extractors on the training data.
@@ -40,6 +76,11 @@ class FeatureExtractor:
 
         if 'abstract' in df.columns and not df['abstract'].isna().all():
             self.abstract_vectorizer.fit(df['abstract'].fillna(''))
+
+        # Compute venue statistics from training data
+        if 'venue' in df.columns and 'citationCount' in df.columns:
+            venue_stats = df.groupby('venue')['citationCount'].agg(['mean', 'median', 'std', 'count'])
+            self.venue_citation_stats = venue_stats.to_dict('index')
 
         self.is_fitted = True
         logger.info("Feature extractors fitted successfully")
@@ -62,8 +103,17 @@ class FeatureExtractor:
         # Metadata features
         features = self._extract_metadata_features(df, features)
 
+        # Venue features
+        features = self._extract_venue_features(df, features)
+
+        # Time-based features
+        features = self._extract_time_features(df, features)
+
         # Author features
         features = self._extract_author_features(df, features)
+
+        # Interaction features
+        features = self._extract_interaction_features(df, features)
 
         # Text features (optional - can be memory intensive)
         # Uncomment if you want to use text features
@@ -180,6 +230,126 @@ class FeatureExtractor:
 
         elif 'author_count' in df.columns:
             features['author_count'] = df['author_count'].fillna(0)
+
+        return features
+
+    def _extract_venue_features(self, df: pd.DataFrame, features: pd.DataFrame) -> pd.DataFrame:
+        """
+        Extract venue-related features.
+
+        Args:
+            df: Input DataFrame
+            features: Features DataFrame to append to
+
+        Returns:
+            Updated features DataFrame
+        """
+        if 'venue' not in df.columns:
+            return features
+
+        # Venue prestige score (manual mapping)
+        def get_venue_prestige(venue_name):
+            """Get prestige score for a venue."""
+            if pd.isna(venue_name) or venue_name == '':
+                return 3.0  # Default for unknown venues
+
+            venue_name = str(venue_name).strip()
+
+            # Exact match
+            if venue_name in self.venue_prestige:
+                return self.venue_prestige[venue_name]
+
+            # Partial match (case insensitive)
+            venue_lower = venue_name.lower()
+            for known_venue, score in self.venue_prestige.items():
+                if known_venue.lower() in venue_lower or venue_lower in known_venue.lower():
+                    return score
+
+            # Default for unknown venues
+            return 3.0
+
+        features['venue_prestige'] = df['venue'].apply(get_venue_prestige)
+
+        # Venue citation statistics (learned from training data)
+        def get_venue_stat(venue_name, stat_name, default_value):
+            """Get venue statistic from training data."""
+            if pd.isna(venue_name) or venue_name not in self.venue_citation_stats:
+                return default_value
+            stats = self.venue_citation_stats[venue_name]
+            return stats.get(stat_name, default_value)
+
+        features['venue_mean_citations'] = df['venue'].apply(
+            lambda v: get_venue_stat(v, 'mean', features['venue_prestige'].median())
+        )
+        features['venue_median_citations'] = df['venue'].apply(
+            lambda v: get_venue_stat(v, 'median', 0)
+        )
+        features['venue_paper_count'] = df['venue'].apply(
+            lambda v: get_venue_stat(v, 'count', 1)
+        )
+
+        # Venue is top tier (prestige >= 8)
+        features['is_top_venue'] = (features['venue_prestige'] >= 8.0).astype(int)
+
+        return features
+
+    def _extract_time_features(self, df: pd.DataFrame, features: pd.DataFrame) -> pd.DataFrame:
+        """
+        Extract time-based features.
+
+        Args:
+            df: Input DataFrame
+            features: Features DataFrame to append to
+
+        Returns:
+            Updated features DataFrame
+        """
+        if 'year' not in df.columns:
+            return features
+
+        # Compute years since publication (assuming measurement year is 2023)
+        current_year = 2023
+        features['years_since_pub'] = df['year'].apply(
+            lambda y: max(0, current_year - y) if pd.notna(y) else 0
+        )
+
+        # Publication age categories
+        features['is_recent'] = (features['years_since_pub'] <= 2).astype(int)
+        features['is_classic'] = (features['years_since_pub'] >= 10).astype(int)
+
+        # Year squared (non-linear time effect)
+        features['year_squared'] = features['year'] ** 2
+
+        return features
+
+    def _extract_interaction_features(self, df: pd.DataFrame, features: pd.DataFrame) -> pd.DataFrame:
+        """
+        Extract interaction features between different dimensions.
+
+        Args:
+            df: Input DataFrame
+            features: Features DataFrame to append to
+
+        Returns:
+            Updated features DataFrame
+        """
+        # Venue × Time interactions
+        if 'venue_prestige' in features and 'year' in features:
+            features['venue_prestige_x_year'] = features['venue_prestige'] * features['year']
+            features['venue_prestige_x_recency'] = features['venue_prestige'] * (1 / (features['years_since_pub'] + 1))
+
+        # Author × Reference interactions
+        if 'author_count' in features and 'reference_count' in features:
+            features['authors_x_refs'] = features['author_count'] * features['reference_count']
+            features['refs_per_author'] = features['reference_count'] / (features['author_count'] + 1)
+
+        # Venue × References
+        if 'venue_prestige' in features and 'reference_count' in features:
+            features['venue_x_refs'] = features['venue_prestige'] * features['reference_count']
+
+        # Title length × Venue (shorter titles in top venues might indicate focused work)
+        if 'venue_prestige' in features and 'title_length' in features:
+            features['title_len_x_venue'] = features['title_length'] * features['venue_prestige']
 
         return features
 
