@@ -205,7 +205,10 @@ class FeatureExtractor:
                 h_indices = []
                 for author in authors:
                     if isinstance(author, dict) and 'hIndex' in author:
-                        h_indices.append(author['hIndex'])
+                        h_idx = author['hIndex']
+                        # Filter out None values
+                        if h_idx is not None:
+                            h_indices.append(h_idx)
                 return h_indices
 
             # Max, mean, and sum of author h-indices
@@ -228,7 +231,10 @@ class FeatureExtractor:
                 citations = []
                 for author in authors:
                     if isinstance(author, dict) and 'citationCount' in author:
-                        citations.append(author['citationCount'])
+                        cit_count = author['citationCount']
+                        # Filter out None values
+                        if cit_count is not None:
+                            citations.append(cit_count)
                 return citations
 
             citation_lists = df['authors'].apply(get_author_citations)
