@@ -34,48 +34,75 @@ def collect_with_query(
     offset = 0
 
     while offset < 1000:  # API limit
-        try:
-            papers = collector.search_papers(
-                query=query,
-                limit=batch_size,
-                offset=offset
-            )
+        retry_count = 0
+        max_retries = 5
 
-            if not papers:
-                break
+        while retry_count < max_retries:
+            try:
+                papers = collector.search_papers(
+                    query=query,
+                    limit=batch_size,
+                    offset=offset
+                )
 
-            batch_new = 0
-            batch_duplicates = 0
+                if not papers:
+                    break
 
-            for paper in papers:
-                paper_id = paper.get('paperId')
+                batch_new = 0
+                batch_duplicates = 0
 
-                if paper.get('citationCount') is None:
+                for paper in papers:
+                    paper_id = paper.get('paperId')
+
+                    if paper.get('citationCount') is None:
+                        continue
+
+                    if paper_id in seen_ids:
+                        batch_duplicates += 1
+                        continue
+
+                    seen_ids.add(paper_id)
+                    new_papers.append(paper)
+                    batch_new += 1
+
+                if batch_new > 0 or batch_duplicates > 0:
+                    logger.info(f"  Offset {offset:4d}: +{batch_new} new, {batch_duplicates} dup")
+
+                if len(papers) < batch_size:
+                    break
+
+                offset += batch_size
+                time.sleep(delay)
+                break  # Success, exit retry loop
+
+            except Exception as e:
+                error_str = str(e)
+
+                # Check if it's a retryable error (504, 503, 502)
+                if "504" in error_str or "503" in error_str or "502" in error_str:
+                    retry_count += 1
+                    wait_time = delay * (2 ** retry_count)  # Exponential backoff
+                    logger.warning(f"  ⚠️  Timeout/Server error at offset {offset} (attempt {retry_count}/{max_retries})")
+                    logger.warning(f"  Retrying in {wait_time:.1f}s...")
+                    time.sleep(wait_time)
                     continue
 
-                if paper_id in seen_ids:
-                    batch_duplicates += 1
-                    continue
+                # Non-retryable error (like 400 bad request)
+                elif "400" in error_str:
+                    logger.error(f"  ❌ Bad request at offset {offset}, skipping query")
+                    break
 
-                seen_ids.add(paper_id)
-                new_papers.append(paper)
-                batch_new += 1
-
-            if batch_new > 0 or batch_duplicates > 0:
-                logger.info(f"  Offset {offset:4d}: +{batch_new} new, {batch_duplicates} dup")
-
-            if len(papers) < batch_size:
-                break
-
-            offset += batch_size
-            time.sleep(delay)
-
-        except Exception as e:
-            logger.error(f"  Error at offset {offset}: {e}")
-            if "400" in str(e):
-                break
-            time.sleep(delay * 2)
-            continue
+                # Unknown error, retry a few times then give up
+                else:
+                    retry_count += 1
+                    if retry_count < max_retries:
+                        logger.error(f"  Error at offset {offset}: {e}")
+                        logger.warning(f"  Retrying ({retry_count}/{max_retries})...")
+                        time.sleep(delay * 2)
+                        continue
+                    else:
+                        logger.error(f"  ❌ Failed after {max_retries} retries, skipping")
+                        break
 
     return new_papers
 
