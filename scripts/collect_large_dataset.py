@@ -160,6 +160,7 @@ def main():
 
     # Semantic Scholar API has a 1000-offset limit, so we use many diverse queries
     # Each query can return max ~800-1000 papers
+    # Target: ~10,000 unique papers with 18 queries
     QUERIES = [
         "machine learning",
         "deep learning",
@@ -173,6 +174,12 @@ def main():
         "speech recognition",
         "image classification",
         "object detection",
+        "semantic segmentation",
+        "generative models",
+        "graph neural networks",
+        "recommendation systems",
+        "transfer learning",
+        "anomaly detection",
     ]
 
     PAPERS_PER_QUERY = 1000  # Max per query due to API offset limit
