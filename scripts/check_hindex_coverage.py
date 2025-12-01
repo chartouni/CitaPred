@@ -13,7 +13,7 @@ def check_hindex_data(json_file):
     print(f"Checking: {json_file}")
     print("="*60)
 
-    with open(json_file, 'r') as f:
+    with open(json_file, 'r', encoding='utf-8') as f:
         papers = json.load(f)
 
     print(f"\nTotal papers: {len(papers):,}")
