@@ -108,6 +108,24 @@ def is_valid_paper(paper: Dict) -> tuple[bool, str]:
     if not authors or len(authors) == 0:
         return False, "No authors"
 
+    # Check for garbled author names
+    for author in authors:
+        author_name = author.get('name', '')
+        if author_name:
+            # Check if author name is garbled
+            if is_garbled_text(author_name):
+                return False, f"Garbled author name: {author_name[:30]}"
+
+            # Check for obviously corrupted names (too many caps, weird patterns)
+            if author_name.isupper() and len(author_name) > 10:
+                # All caps names like "BOOKS RECEIVED" are suspicious
+                return False, f"Suspicious author name (all caps): {author_name[:30]}"
+
+            # Check for numeric-heavy names (corrupted data)
+            digit_count = sum(1 for c in author_name if c.isdigit())
+            if len(author_name) > 0 and (digit_count / len(author_name)) > 0.3:
+                return False, f"Author name has too many digits: {author_name[:30]}"
+
     # All checks passed
     return True, "Valid"
 
