@@ -178,6 +178,9 @@ def clean_dataset(input_file: str, output_file: str):
     csv_path = output_path.with_suffix('.csv')
     csv_data = []
 
+    # Track h-index stats for debugging
+    papers_with_hindex_csv = 0
+
     for paper in valid_papers:
         row = {
             'paperId': paper.get('paperId'),
@@ -197,6 +200,7 @@ def clean_dataset(input_file: str, output_file: str):
         if h_indices:
             row['max_author_hindex'] = max(h_indices)
             row['mean_author_hindex'] = sum(h_indices) / len(h_indices)
+            papers_with_hindex_csv += 1
         else:
             row['max_author_hindex'] = None
             row['mean_author_hindex'] = None
@@ -206,6 +210,7 @@ def clean_dataset(input_file: str, output_file: str):
     df = pd.DataFrame(csv_data)
     df.to_csv(csv_path, index=False, encoding='utf-8')
     logger.info(f"💾 Saved cleaned CSV: {csv_path}")
+    logger.info(f"   Papers with h-index in CSV: {papers_with_hindex_csv}/{len(valid_papers)} ({papers_with_hindex_csv/len(valid_papers)*100:.1f}%)")
 
     # Final statistics
     logger.info("\n" + "="*60)
