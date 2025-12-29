@@ -36,10 +36,16 @@ class FeatureExtractor:
             'Nature': 10.0, 'Science': 10.0, 'Cell': 9.5,
             'Nature Medicine': 9.0, 'Nature Genetics': 9.0, 'Nature Biotechnology': 9.0,
 
-            # Top ML/AI conferences
-            'NeurIPS': 9.0, 'NIPS': 9.0, 'ICML': 9.0, 'ICLR': 8.5,
-            'CVPR': 8.5, 'ICCV': 8.5, 'ECCV': 8.0,
-            'ACL': 8.0, 'EMNLP': 7.5, 'NAACL': 7.0,
+            # Top ML/AI conferences (abbreviations and full names)
+            'NeurIPS': 9.0, 'NIPS': 9.0, 'Neural Information Processing Systems': 9.0,
+            'ICML': 9.0, 'International Conference on Machine Learning': 9.0,
+            'ICLR': 8.5, 'International Conference on Learning Representations': 8.5,
+            'CVPR': 8.5, 'Computer Vision and Pattern Recognition': 8.5,
+            'ICCV': 8.5, 'IEEE International Conference on Computer Vision': 8.5,
+            'ECCV': 8.0, 'European Conference on Computer Vision': 8.0,
+            'ACL': 8.0, 'Annual Meeting of the Association for Computational Linguistics': 8.0,
+            'EMNLP': 7.5, 'Conference on Empirical Methods in Natural Language Processing': 7.5,
+            'NAACL': 7.0, 'North American Chapter of the Association for Computational Linguistics': 7.0,
 
             # Top systems/theory conferences
             'OSDI': 8.5, 'SOSP': 8.5, 'SIGCOMM': 8.0, 'NSDI': 8.0,
@@ -55,6 +61,9 @@ class FeatureExtractor:
             # Popular journals
             'PLOS ONE': 5.0, 'Scientific Reports': 5.0,
             'IEEE Transactions': 6.5, 'ACM Transactions': 6.5,
+            'IEEE Access': 5.5,
+            'ACM Computing Surveys': 8.0,
+            'Journal of machine learning research': 8.5, 'JMLR': 8.5,
 
             # Medical
             'The Lancet': 9.5, 'NEJM': 10.0, 'JAMA': 9.0, 'BMJ': 8.0,
@@ -196,19 +205,23 @@ class FeatureExtractor:
                 h_indices = []
                 for author in authors:
                     if isinstance(author, dict) and 'hIndex' in author:
-                        h_indices.append(author['hIndex'])
-                return h_indices
+                        h_idx = author['hIndex']
+                        # Filter out None values
+                        if h_idx is not None:
+                            h_indices.append(h_idx)
+                # Extra safety: filter out any None values that might have slipped through
+                return [h for h in h_indices if h is not None]
 
             # Max, mean, and sum of author h-indices
             h_index_lists = df['authors'].apply(get_author_h_indices)
             features['max_author_hindex'] = h_index_lists.apply(
-                lambda x: max(x) if len(x) > 0 else 0
+                lambda x: max([v for v in x if v is not None]) if x and any(v is not None for v in x) else 0
             )
             features['mean_author_hindex'] = h_index_lists.apply(
-                lambda x: np.mean(x) if len(x) > 0 else 0
+                lambda x: np.mean([v for v in x if v is not None]) if x and any(v is not None for v in x) else 0
             )
             features['sum_author_hindex'] = h_index_lists.apply(
-                lambda x: sum(x) if len(x) > 0 else 0
+                lambda x: sum([v for v in x if v is not None]) if x and any(v is not None for v in x) else 0
             )
 
             # Extract author citation counts (if available)
@@ -219,15 +232,19 @@ class FeatureExtractor:
                 citations = []
                 for author in authors:
                     if isinstance(author, dict) and 'citationCount' in author:
-                        citations.append(author['citationCount'])
-                return citations
+                        cit_count = author['citationCount']
+                        # Filter out None values
+                        if cit_count is not None:
+                            citations.append(cit_count)
+                # Extra safety: filter out any None values that might have slipped through
+                return [c for c in citations if c is not None]
 
             citation_lists = df['authors'].apply(get_author_citations)
             features['max_author_citations'] = citation_lists.apply(
-                lambda x: max(x) if len(x) > 0 else 0
+                lambda x: max([v for v in x if v is not None]) if x and any(v is not None for v in x) else 0
             )
             features['mean_author_citations'] = citation_lists.apply(
-                lambda x: np.mean(x) if len(x) > 0 else 0
+                lambda x: np.mean([v for v in x if v is not None]) if x and any(v is not None for v in x) else 0
             )
 
         elif 'author_count' in df.columns:

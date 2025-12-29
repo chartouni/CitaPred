@@ -10,6 +10,7 @@ from pathlib import Path
 import json
 import numpy as np
 import pandas as pd
+import pickle
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import KFold
@@ -302,6 +303,26 @@ def main():
 
             logger.info(f"\nTop 10 Most Important Features ({best_model_type}):")
             logger.info("\n" + str(feature_importance.head(10)))
+
+        # Save the model and feature extractor
+        models_dir = Path(__file__).parent.parent / "models"
+        models_dir.mkdir(parents=True, exist_ok=True)
+
+        model_path = models_dir / "best_model.pkl"
+        model_data = {
+            'model': final_model,
+            'feature_extractor': feature_extractor,
+            'model_type': best_model_type,
+            'r2_score': best_r2,
+            'avg_metrics': results[best_model_type]['avg_metrics']
+        }
+
+        with open(model_path, 'wb') as f:
+            pickle.dump(model_data, f)
+
+        logger.info(f"\n💾 Model saved to: {model_path}")
+        logger.info(f"   Model type: {best_model_type}")
+        logger.info(f"   R² score: {best_r2:.4f}")
 
     logger.info("\n=== K-Fold Cross Validation Complete! ===")
 
